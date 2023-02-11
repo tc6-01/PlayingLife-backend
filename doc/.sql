@@ -17,7 +17,8 @@ create table beeran.user
     role        int      default 0                 not null comment '用户权限
 0 普通用户
 1 管理员',
-    planetCode  varchar(512)                       null comment '星球编号'
+    planetCode  varchar(512)                       null comment '星球编号',
+    tags        varchar(1024)                      null comment '用户json标签'
 )
     comment 'table';
 
