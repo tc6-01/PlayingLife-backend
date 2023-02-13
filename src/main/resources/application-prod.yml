@@ -6,3 +6,6 @@ spring:
     password: 123456
   session:
     timeout: 86400 # 设置超时时间为一天
+
+server:
+  address: 0.0.0.0
