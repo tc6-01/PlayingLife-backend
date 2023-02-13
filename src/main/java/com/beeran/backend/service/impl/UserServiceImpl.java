@@ -7,29 +7,22 @@ import com.beeran.backend.exception.BusisnessException;
 import com.beeran.backend.model.domain.User;
 import com.beeran.backend.service.UserService;
 import com.beeran.backend.mapper.UserMapper;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 
 
 /**
  * 用户服务实现类
+ *
  * @author BeerAn
  */
 @Service
@@ -156,7 +149,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safeUser.setRole(originUser.getRole());
         safeUser.set_status(originUser.get_status());
         safeUser.setCreate_time(originUser.getCreate_time());
-        safeUser.setTags(originUser.getTags());
         return safeUser;
     }
 
@@ -168,68 +160,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public Integer userLogout(HttpServletRequest request) {
         request.getSession().removeAttribute(USER_LOGIN_STATUS);
         return 0;
-    }
-
-    /**
-     * 根据标签查询用户 <SQL 查询版>
-     * @param tagNameList 用户使用的标签
-     * @return
-     */
-    @Deprecated
-    private List<User> searchUserByTagsBySql(List<String> tagNameList) {
-        if (CollectionUtils.isEmpty(tagNameList)) {
-            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
-        }
-        // 拼接 and 查询
-        // SQL语句：Like %JAVA% AND LIKE %PYTHON%
-        long start = System.currentTimeMillis();
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        for (String tagName : tagNameList) {
-            queryWrapper = queryWrapper.like("tags", tagName);
-        }
-        List<User> users = userMapper.selectList(queryWrapper);
-        System.out.println("sql cost time:" + (System.currentTimeMillis() - start));
-        return users.stream().map(this::safetyUser).collect(Collectors.toList());
-    }
-
-    /**
-     * 根据标签查询用户 <memory 查询版>
-     * @param tagNameList 用户使用的标签
-     * @return
-     */
-    @Override
-    public List<User> searchUserByTags(List<String> tagNameList){
-        if (CollectionUtils.isEmpty(tagNameList)) {
-            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
-        }
-        // 先查询所有用户
-        QueryWrapper<User> queryWrapper;
-        queryWrapper = new QueryWrapper<>();
-        long start = System.currentTimeMillis();
-        userMapper.selectCount(null);
-        System.out.println("database connect time:" + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
-        List<User> users = userMapper.selectList(queryWrapper);
-        Gson gson = new Gson();
-        // 在内存中判断是否有需要的标签
-        // 语法糖--->代替遍历内存中的每条记录
-        users.stream().filter(user -> {
-            String tags = user.getTags();
-            // 将获取的json字符串反序列化，存储在集合中
-            // 遍历传入的列表参数，查找所有标签都存在的记录
-            // 如果集合中有对应的标签，就将该用户放入
-            if (StringUtils.isBlank(tags)) return false;
-            Set<String> tagNameSet = gson.fromJson(tags, new TypeToken<Set<String>>() {}.getType());
-            tagNameSet = Optional.ofNullable(tagNameSet).orElse(new HashSet<>());
-            for (String tagName : tagNameList) {
-                if (!tagNameSet.contains(tagName)) {
-                    return false;
-                }
-            }
-            return true;
-        }).map(this::safetyUser).collect(Collectors.toList());
-        System.out.println("memory cost time:" + (System.currentTimeMillis() - start));
-        return users;
     }
 }
 

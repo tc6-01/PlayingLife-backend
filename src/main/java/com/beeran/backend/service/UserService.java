@@ -4,7 +4,6 @@ import com.beeran.backend.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * userService
@@ -35,11 +34,4 @@ public interface UserService extends IService<User> {
      * @return
      */
     Integer userLogout(HttpServletRequest request);
-
-    /**
-     * 根据用户标签搜索用户
-     * @param tags 用户使用的标签
-     * @return
-     */
-    List<User> searchUserByTags(List<String> tags);
 }
