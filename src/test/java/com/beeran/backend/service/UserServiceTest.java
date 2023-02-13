@@ -1,14 +1,12 @@
 package com.beeran.backend.service;
 
 import com.beeran.backend.model.domain.User;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
+
 
 
 /**
@@ -73,12 +71,5 @@ class UserServiceTest {
         userAccount = "yexu";
         userService.userRegister(userAccount, userPassword, checkPassWord, plantCode);
 
-    }
-
-    @Test
-    void searchUserByTags() {
-        List<String> tagNameList = Arrays.asList("java","python");
-        List<User> users = userService.searchUserByTags(tagNameList);
-        Assert.assertNotNull(users);
     }
 }
