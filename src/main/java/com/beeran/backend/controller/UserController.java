@@ -83,6 +83,10 @@ public class UserController {
     public BaseResponse<User> getCurrentUser(HttpServletRequest request){
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
         User currentUser = (User)userObj;
+        System.out.println("-------------------------------");
+        System.out.println("打印session中的内容");
+        System.out.println("-------------------------------");
+        System.out.println(currentUser);
         if (currentUser == null) {
             throw new BusisnessException(ErrorCode.NO_LOGIN);
         }
