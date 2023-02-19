@@ -4,7 +4,7 @@ package com.beeran.backend.common;
  * 全局错误码
  */
 public enum ErrorCode {
-    PARAMS_ERROR(-9999, "请求参数错误", "" ),
+    PARAMS_ERROR(40001, "请求参数错误", "" ),
     NO_LOGIN(40100, "用户未登录", ""),
     NULL_ERROR(40000, "请求数据为空", ""),
     NO_AUTH(40101, "用户权限不足",""),

@@ -4,7 +4,6 @@ spring:
     port: 8080
     servlet:
       context-path: /api
-
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER

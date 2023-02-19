@@ -18,7 +18,19 @@ create table beeran.user
 0 普通用户
 1 管理员',
     planetCode  varchar(512)                       null comment '星球编号',
-    tags        varchar(1024)                      null comment '用户json标签'
+    tags        varchar(1024)                      null comment '用户json标签',
+    profile        varchar(1024)                      null comment '用户json标签'
 )
     comment 'table';
 
+
+# 添加修改字符编码
+ALTER TABLE user MODIFY  username varchar(256) DEFAULT NULL;
+ALTER TABLE user MODIFY _account varchar(256) DEFAULT NULL;
+ALTER TABLE user MODIFY avatar_url varchar(1024) DEFAULT NULL;
+ALTER TABLE user MODIFY _password varchar(256) DEFAULT NULL;
+ALTER TABLE user MODIFY phone varchar(256) DEFAULT NULL;
+
+ALTER TABLE user MODIFY tags varchar(1024) DEFAULT NULL;
+ALTER TABLE user MODIFY profile varchar(1024) DEFAULT NULL;
+show create table user;

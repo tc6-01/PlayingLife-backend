@@ -17,6 +17,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public BaseResponse runtimeExceptionHandler(RuntimeException e){
         log.error("RuntimeException",e);
-        return ResultUtils.Error(ErrorCode.SYSTEM_ERROR,e.getMessage(), "");
+        return ResultUtils.Error(ErrorCode.SYSTEM_ERROR,e.getMessage(), "系统出错，请稍后重试");
     }
 }

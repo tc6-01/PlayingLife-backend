@@ -12,6 +12,7 @@ import com.beeran.backend.service.UserService;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -30,6 +31,7 @@ import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
  * @Author BeerAn
  */
 @RestController
+@CrossOrigin
 @RequestMapping("/user")
 public class UserController {
     @Resource
@@ -108,6 +110,16 @@ public class UserController {
             return user;
         }).collect(Collectors.toList());
         return ResultUtils.Success(collect);
+    }
+    @GetMapping("/search/tags")
+    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList){
+        // 判断传入数据，请求参数是否为空
+        if (CollectionUtils.isEmpty(tagNameList)){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 调用Service层
+        List<User> userList = userService.searchUserByTags(tagNameList);
+        return ResultUtils.Success(userList);
     }
 
     @PostMapping("/delete")

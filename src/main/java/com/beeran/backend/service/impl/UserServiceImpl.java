@@ -157,6 +157,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safeUser.set_status(originUser.get_status());
         safeUser.setCreate_time(originUser.getCreate_time());
         safeUser.setTags(originUser.getTags());
+        safeUser.setProfile(originUser.getProfile());
         return safeUser;
     }
 
@@ -206,14 +207,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         QueryWrapper<User> queryWrapper;
         queryWrapper = new QueryWrapper<>();
         long start = System.currentTimeMillis();
-        userMapper.selectCount(null);
-        System.out.println("database connect time:" + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
         List<User> users = userMapper.selectList(queryWrapper);
         Gson gson = new Gson();
         // 在内存中判断是否有需要的标签
         // 语法糖--->代替遍历内存中的每条记录
-        users.stream().filter(user -> {
+        users = users.stream().filter(user -> {
             String tags = user.getTags();
             // 将获取的json字符串反序列化，存储在集合中
             // 遍历传入的列表参数，查找所有标签都存在的记录

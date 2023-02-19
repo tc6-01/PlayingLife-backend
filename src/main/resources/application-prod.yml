@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://120.76.203.218:3306/test
-    username: root
+    username: user
     password: 123456
   session:
     timeout: 86400 # 设置超时时间为一天
