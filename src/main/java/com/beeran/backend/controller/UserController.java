@@ -31,8 +31,8 @@ import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
  * @Author BeerAn
  */
 @RestController
-@CrossOrigin
 @RequestMapping("/user")
+@CrossOrigin
 public class UserController {
     @Resource
     private UserService userService;
@@ -101,7 +101,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String userName, HttpServletRequest request){
         // 鉴权，仅管理员可搜索
-        if (!isAdmin(request)){
+        if (!userService.isAdmin(request)){
             throw new BusisnessException(ErrorCode.NO_AUTH);
         }
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
@@ -126,13 +126,29 @@ public class UserController {
         return ResultUtils.Success(userList);
     }
 
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(User user, HttpServletRequest request) {
+        /**
+         * 1.校验参数是否为空
+         * 2.校验权限
+         * 3.触发更新
+         */
+        if (user == null){
+            throw new BusisnessException(ErrorCode.NULL_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        Integer result = userService.updateUser(user, loginUser);
+        return ResultUtils.Success(result);
+
+    }
+
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUsers(@RequestBody long id, HttpServletRequest request) {
 
         if (id <= 0) {
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
-        if (isAdmin(request)) {
+        if (userService.isAdmin(request)) {
             throw new BusisnessException(ErrorCode.NO_AUTH);
         }
         boolean b = userService.removeById(id);
@@ -140,13 +156,5 @@ public class UserController {
     }
 
 
-    private boolean isAdmin(@RequestBody HttpServletRequest request){
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
-        User user = (User) userObj;
-        if (user == null || user.getRole() != ADMIN_ROLE){
-            return  false;
-        }
-        return true;
-    }
 
 }

@@ -2,9 +2,13 @@ package com.beeran.backend.service;
 
 import com.beeran.backend.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+
+import static com.beeran.backend.constant.UserConstant.ADMIN_ROLE;
+import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 
 /**
  * userService
@@ -42,4 +46,16 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<User> searchUserByTags(List<String> tags);
+
+    Integer updateUser(User user, User loginUser);
+
+    /**
+     * 获取当前登录用户信息
+     * @param request
+     * @return
+     */
+    User getLoginUser(HttpServletRequest request);
+    boolean isAdmin(@RequestBody HttpServletRequest request);
+
+    boolean isAdmin(User user);
 }

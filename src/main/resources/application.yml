@@ -14,7 +14,12 @@ spring:
     password: 123456
   session:
     timeout: 86400 # 设置超时时间为一天
-
+    # 表示从Redis读写session
+    store-type: redis
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false  # 下划线转换为驼峰

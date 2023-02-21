@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.beeran.backend.constant.UserConstant.ADMIN_ROLE;
 import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 
 
@@ -130,6 +131,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User safeUser = safetyUser(user);
         // 4.记录用户登录状态
         req.getSession().setAttribute(USER_LOGIN_STATUS, safeUser);
+        System.out.println("成功设置用户登录态");
+        System.out.println(req.getSession().getAttribute(USER_LOGIN_STATUS));
         return safeUser;
 
     }
@@ -229,6 +232,68 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         System.out.println("memory cost time:" + (System.currentTimeMillis() - start));
         return users;
     }
+
+    /**
+     * 更新用户信息
+     * @param user 修改后的用户信息
+     * @param loginUser 登录的用户信息
+     * @return 更新后的用户ID
+     */
+    @Override
+    public Integer updateUser(User user, User loginUser) {
+        Long userID = user.getId();
+        if (userID == null){
+            throw new BusisnessException(ErrorCode.NULL_ERROR);
+        }
+        // 只有管理员和自己可以修改
+        if (!isAdmin(loginUser) && userID != loginUser.getId()) {
+            throw new BusisnessException(ErrorCode.NO_AUTH);
+        }
+        User oldUser = userMapper.selectById(userID);
+        if (oldUser == null) {
+            throw new BusisnessException(ErrorCode.NULL_ERROR);
+        }
+        // 仅管理员和用户自己可修改
+        return userMapper.updateById(user);
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
+        if (userObj == null) {
+            throw new BusisnessException(ErrorCode.NO_LOGIN);
+        }
+        return (User) userObj;
+    }
+
+    /**
+     * 判断当前登录用户是否为管理员
+     * @param request
+     * @return
+     */
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
+        User user = (User) userObj;
+        if (user == null || user.getRole() != ADMIN_ROLE){
+            return  false;
+        }
+        return true;
+    }
+
+    /**
+     * 判断传入用户是否为管理员
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean isAdmin(User user) {
+        if (user == null || user.getRole() != ADMIN_ROLE){
+            return  false;
+        }
+        return true;
+    }
+
 }
 
 
