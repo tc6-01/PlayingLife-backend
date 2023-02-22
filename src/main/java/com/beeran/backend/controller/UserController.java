@@ -1,6 +1,7 @@
 package com.beeran.backend.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.beeran.backend.common.BaseResponse;
 import com.beeran.backend.common.ErrorCode;
 import com.beeran.backend.common.ResultUtils;
@@ -9,9 +10,7 @@ import com.beeran.backend.model.domain.User;
 import com.beeran.backend.model.domain.request.UserLoginRequest;
 import com.beeran.backend.model.domain.request.UserRegisterRequest;
 import com.beeran.backend.service.UserService;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -125,7 +124,14 @@ public class UserController {
         List<User> userList = userService.searchUserByTags(tagNameList);
         return ResultUtils.Success(userList);
     }
-
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request){
+        // 判断传入数据，请求参数是否为空
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        // 调用Service层
+        Page<User> userList = userService.page(new Page<>(pageNum, pageSize),queryWrapper);
+        return ResultUtils.Success(userList);
+    }
     @PostMapping("/update")
     public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
         /**
