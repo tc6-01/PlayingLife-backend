@@ -83,10 +83,10 @@ public class UserController {
     public BaseResponse<User> getCurrentUser(HttpServletRequest request){
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
         User currentUser = (User)userObj;
-        System.out.println("-------------------------------");
-        System.out.println("打印session中的内容");
-        System.out.println("-------------------------------");
-        System.out.println(currentUser);
+//        System.out.println("-------------------------------");
+//        System.out.println("打印session中的内容");
+//        System.out.println("-------------------------------");
+//        System.out.println(currentUser);
         if (currentUser == null) {
             throw new BusisnessException(ErrorCode.NO_LOGIN);
         }
@@ -127,11 +127,12 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public BaseResponse<Integer> updateUser(User user, HttpServletRequest request) {
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
         /**
          * 1.校验参数是否为空
          * 2.校验权限
          * 3.触发更新
+         * todo 如果用户未传递任何信息，则返回空，并抛出异常
          */
         if (user == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR);

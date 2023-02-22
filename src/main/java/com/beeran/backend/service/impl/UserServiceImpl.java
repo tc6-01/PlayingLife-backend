@@ -246,7 +246,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusisnessException(ErrorCode.NULL_ERROR);
         }
         // 只有管理员和自己可以修改
-        if (!isAdmin(loginUser) && userID != loginUser.getId()) {
+        if (isAdmin(loginUser) && userID != loginUser.getId()) {
             throw new BusisnessException(ErrorCode.NO_AUTH);
         }
         User oldUser = userMapper.selectById(userID);
@@ -257,9 +257,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userMapper.updateById(user);
     }
 
+    /**
+     * 从cookie中判断用户是否登录
+     * @param request
+     * @return
+     */
     @Override
     public User getLoginUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
+        System.out.println("用户登录i");
         if (userObj == null) {
             throw new BusisnessException(ErrorCode.NO_LOGIN);
         }
