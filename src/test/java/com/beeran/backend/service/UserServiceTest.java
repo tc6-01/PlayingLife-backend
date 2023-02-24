@@ -105,8 +105,7 @@ class UserServiceTest {
             user.setEmail("123@qq.com");
             user.set_status(0);
             user.setRole(0);
-            user.setPlanetCode("1212");
-            user.setTags("['男']");
+            user.setTags("[]");
             user.setProfile("这是测试的插入数据");
             userList.add(user);
         }
@@ -125,7 +124,7 @@ class UserServiceTest {
         List<CompletableFuture<Void>> featureList = new ArrayList<>();
         int j = 0;
         int batchSize = 5000;
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 70; i++) {
             List<User> userList = new ArrayList<>();
             // 插入数据
             while (true) {
@@ -140,8 +139,7 @@ class UserServiceTest {
                 user.setEmail("123@qq.com");
                 user.set_status(0);
                 user.setRole(0);
-                user.setPlanetCode("1212");
-                user.setTags("['女']");
+                user.setTags("[]");
                 user.setProfile("这是测试的插入数据");
                 userList.add(user);
             }

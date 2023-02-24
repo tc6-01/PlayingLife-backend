@@ -10,14 +10,17 @@ import com.beeran.backend.model.domain.User;
 import com.beeran.backend.model.domain.request.UserLoginRequest;
 import com.beeran.backend.model.domain.request.UserRegisterRequest;
 import com.beeran.backend.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.beeran.backend.constant.UserConstant.ADMIN_ROLE;
@@ -32,9 +35,12 @@ import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 @RestController
 @RequestMapping("/user")
 @CrossOrigin
+@Slf4j
 public class UserController {
     @Resource
     private UserService userService;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
     // 用户注册
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
@@ -75,6 +81,7 @@ public class UserController {
             throw new BusisnessException(ErrorCode.NULL_ERROR);
         }
         User user = userService.userLogin(userAccount, password, req);
+        System.out.println("-----------------------------Successfully login-----------------------------");
         return ResultUtils.Success(user);
     }
 
@@ -82,10 +89,6 @@ public class UserController {
     public BaseResponse<User> getCurrentUser(HttpServletRequest request){
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
         User currentUser = (User)userObj;
-//        System.out.println("-------------------------------");
-//        System.out.println("打印session中的内容");
-//        System.out.println("-------------------------------");
-//        System.out.println(currentUser);
         if (currentUser == null) {
             throw new BusisnessException(ErrorCode.NO_LOGIN);
         }
@@ -126,11 +129,27 @@ public class UserController {
     }
     @GetMapping("/recommend")
     public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request){
+        User loginUser = userService.getLoginUser(request);
+        Long id = loginUser.getId();
+        // 判断当前用户是否有缓存，如果有就直接用缓存
+        String redisKey = String.format("com.user.recommend.%s", id);
+        ValueOperations<String, Object> sop = redisTemplate.opsForValue();
+        Page<User> userPage = (Page<User>) sop.get(redisKey);
+        if (userPage != null){
+            return ResultUtils.Success(userPage);
+        }
+        // 无缓存，去查数据库
         // 判断传入数据，请求参数是否为空
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         // 调用Service层
-        Page<User> userList = userService.page(new Page<>(pageNum, pageSize),queryWrapper);
-        return ResultUtils.Success(userList);
+        userPage = userService.page(new Page<>(pageNum, pageSize),queryWrapper);
+        // 写入缓存
+        try {
+            sop.set(redisKey, userPage, 2, TimeUnit.HOURS);
+        } catch (Exception e) {
+            log.error("redis key error", e);
+        }
+        return ResultUtils.Success(userPage);
     }
     @PostMapping("/update")
     public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {

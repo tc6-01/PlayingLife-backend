@@ -131,8 +131,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User safeUser = safetyUser(user);
         // 4.记录用户登录状态
         req.getSession().setAttribute(USER_LOGIN_STATUS, safeUser);
-        System.out.println("成功设置用户登录态");
-        System.out.println(req.getSession().getAttribute(USER_LOGIN_STATUS));
+//        System.out.println(req.getSession().getAttribute(USER_LOGIN_STATUS));
+//        System.out.println("成功设置用户登录态");
         return safeUser;
 
     }
@@ -265,7 +265,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public User getLoginUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
-        System.out.println("用户登录i");
         if (userObj == null) {
             throw new BusisnessException(ErrorCode.NO_LOGIN);
         }
