@@ -1,4 +1,4 @@
-package com.beeran.backend.model.domain.request;
+package com.beeran.backend.model.request;
 
 import lombok.Data;
 

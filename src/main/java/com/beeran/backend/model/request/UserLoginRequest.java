@@ -1,11 +1,11 @@
-package com.beeran.backend.model.domain.request;
+package com.beeran.backend.model.request;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * 用户注册请求体
+ * 用户登录请求体
  *
  * @Author BeerAn
  */

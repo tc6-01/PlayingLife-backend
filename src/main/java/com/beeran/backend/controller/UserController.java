@@ -7,8 +7,8 @@ import com.beeran.backend.common.ErrorCode;
 import com.beeran.backend.common.ResultUtils;
 import com.beeran.backend.exception.BusisnessException;
 import com.beeran.backend.model.domain.User;
-import com.beeran.backend.model.domain.request.UserLoginRequest;
-import com.beeran.backend.model.domain.request.UserRegisterRequest;
+import com.beeran.backend.model.request.UserLoginRequest;
+import com.beeran.backend.model.request.UserRegisterRequest;
 import com.beeran.backend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.beeran.backend.constant.UserConstant.ADMIN_ROLE;
 import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 
 
