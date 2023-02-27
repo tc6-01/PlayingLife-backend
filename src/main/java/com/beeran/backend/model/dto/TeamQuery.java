@@ -1,18 +1,29 @@
 package com.beeran.backend.model.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.beeran.backend.common.pageResponse;
+import lombok.Data;
+
+import java.util.List;
 
 /**
  * 查询队伍封装类
  */
+@Data
 public class TeamQuery extends pageResponse {
     /**
      * id
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
+
+    /**
+     * id 列表
+     */
+    private List<Long> idList;
+
+    /**
+     * 搜索关键词（同时对队伍名称和描述搜索）
+     */
+    private String searchText;
 
     /**
      * 队伍名称

@@ -9,7 +9,10 @@ import com.beeran.backend.exception.BusisnessException;
 import com.beeran.backend.model.domain.Team;
 import com.beeran.backend.model.domain.User;
 import com.beeran.backend.model.dto.TeamQuery;
-import com.beeran.backend.model.request.TeamAdddRequest;
+import com.beeran.backend.model.request.TeamAddRequest;
+import com.beeran.backend.model.request.TeamJoinRequest;
+import com.beeran.backend.model.request.TeamUpdateRequest;
+import com.beeran.backend.model.vo.TeamUserVO;
 import com.beeran.backend.service.TeamService;
 import com.beeran.backend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +40,7 @@ public class TeamController {
     private TeamService teamService;
 
     @PostMapping("/add")
-    public BaseResponse<Long> addTeam(@RequestBody TeamAdddRequest teamAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         if (teamAddRequest == null) {
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
@@ -60,11 +63,31 @@ public class TeamController {
         return ResultUtils.Success(true);
     }
     @PostMapping("/update")
-    public BaseResponse<Long> updateTeam(@RequestBody Team team){
-        if (team == null){
+    public BaseResponse<Long> updateTeam(@RequestBody TeamUpdateRequest teamUpdate, HttpServletRequest request){
+        if (teamUpdate == null){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean result = teamService.updateById(team);
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.updateTeam(teamUpdate, loginUser);
+        if (!result){
+            throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"更新失败");
+        }
+        return ResultUtils.Success(true);
+    }
+
+    /**
+     * 用户加入队伍
+     * @param teamJoinRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/join")
+    public BaseResponse<Long> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
+        if (teamJoinRequest == null) {
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
         if (!result){
             throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"更新失败");
         }
@@ -82,15 +105,14 @@ public class TeamController {
         return ResultUtils.Success(true);
     }
     @GetMapping("/list")
-    public BaseResponse<Team> getTeams(TeamQuery teamQuery) {
+    public BaseResponse<TeamUserVO> getTeams(TeamQuery teamQuery, HttpServletRequest request) {
 
         if (teamQuery == null){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
-        Team team = new Team();
-        BeanUtils.copyProperties(teamQuery, team);
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-        List<Team> resultTeams = teamService.list(queryWrapper);
+        boolean isAdmin = userService.isAdmin(request);
+        List<TeamUserVO> resultTeams = teamService.ListTeams(teamQuery, isAdmin);
+
         if (resultTeams == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }

@@ -11,7 +11,8 @@ import java.util.Date;
  * @Author BeerAn
  */
 @Data
-public class TeamAdddRequest implements Serializable {
+public class TeamAddRequest implements Serializable {
+
     /**
      * 队伍名称
      */
