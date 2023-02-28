@@ -8,6 +8,7 @@ import com.beeran.backend.common.ResultUtils;
 import com.beeran.backend.exception.BusisnessException;
 import com.beeran.backend.model.domain.Team;
 import com.beeran.backend.model.domain.User;
+import com.beeran.backend.model.domain.UserTeam;
 import com.beeran.backend.model.dto.TeamQuery;
 import com.beeran.backend.model.request.TeamAddRequest;
 import com.beeran.backend.model.request.TeamJoinRequest;
@@ -15,13 +16,16 @@ import com.beeran.backend.model.request.TeamUpdateRequest;
 import com.beeran.backend.model.vo.TeamUserVO;
 import com.beeran.backend.service.TeamService;
 import com.beeran.backend.service.UserService;
+import com.beeran.backend.service.UserTeamService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -38,8 +42,16 @@ public class TeamController {
     private UserService userService;
     @Resource
     private TeamService teamService;
+    @Resource
+    private UserTeamService userTeamService;
 
-    @PostMapping("/add")
+    /**
+     * 添加队伍
+     * @param teamAddRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/addTeam")
     public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         if (teamAddRequest == null) {
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
@@ -51,17 +63,49 @@ public class TeamController {
         return ResultUtils.Success(teamId);
     }
 
-    @PostMapping("/delete")
-    public BaseResponse<Long> delTeam(@RequestBody long id){
-        if (id < 0){
+    /**
+     * 退出队伍
+     * @param teamId
+     * @param request
+     * @return
+     */
+    @PostMapping("/exitTeam")
+    public BaseResponse<Boolean> exitTeam(long teamId, HttpServletRequest request){
+        if (teamId < 0){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean save = teamService.removeById(id);
+        User loginUser = userService.getLoginUser(request);
+        boolean save = teamService.exitTeam(teamId,loginUser);
         if (!save){
-            throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"删除失败");
+            throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"退出失败");
         }
         return ResultUtils.Success(true);
     }
+
+    /**
+     * 解散队伍
+     * @param teamId
+     * @param request
+     * @return
+     */
+    @PostMapping("/deleteTeam")
+    public BaseResponse<Boolean> delTeam(long teamId, HttpServletRequest request){
+        if (teamId < 0){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.delTeam(teamId,loginUser);
+        if (!result){
+            throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"解散队伍失败");
+        }
+        return ResultUtils.Success(true);
+    }
+    /**
+     * 更新队伍信息
+     * @param teamUpdate
+     * @param request
+     * @return
+     */
     @PostMapping("/update")
     public BaseResponse<Long> updateTeam(@RequestBody TeamUpdateRequest teamUpdate, HttpServletRequest request){
         if (teamUpdate == null){
@@ -104,6 +148,13 @@ public class TeamController {
         }
         return ResultUtils.Success(true);
     }
+
+    /**
+     * 获取所有用户信息
+     * @param teamQuery
+     * @param request
+     * @return
+     */
     @GetMapping("/list")
     public BaseResponse<TeamUserVO> getTeams(TeamQuery teamQuery, HttpServletRequest request) {
 
@@ -113,6 +164,47 @@ public class TeamController {
         boolean isAdmin = userService.isAdmin(request);
         List<TeamUserVO> resultTeams = teamService.ListTeams(teamQuery, isAdmin);
 
+        if (resultTeams == null){
+            throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
+        }
+        return ResultUtils.Success(resultTeams);
+    }
+    /**
+     * 获取当前用户加入队伍
+     * @param request
+     * @return
+     */
+    @GetMapping("/listJoin")
+    public BaseResponse<TeamUserVO> getJoinTeams(TeamQuery teamQuery, HttpServletRequest request) {
+
+        if (teamQuery == null){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", loginUser.getId());
+        List<UserTeam> list = userTeamService.list(queryWrapper);
+        List<Long> idList = new ArrayList<>(list.stream().collect(Collectors.groupingBy(UserTeam::getTeamId)).keySet());
+        teamQuery.setIdList(idList);
+        List<TeamUserVO> resultTeams = teamService.ListTeams(teamQuery, true);
+        if (resultTeams == null){
+            throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
+        }
+        return ResultUtils.Success(resultTeams);
+    }
+    /**
+     * 获取当前用户创建队伍
+     * @param request
+     * @return
+     */
+    @GetMapping("/listCreate")
+    public BaseResponse<TeamUserVO> getCreateTeams(TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        teamQuery.setUserId(loginUser.getId());
+        List<TeamUserVO> resultTeams = teamService.ListTeams(teamQuery, true);
         if (resultTeams == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }
