@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 /**
  * 队伍接口
- *
  * @Author BeerAn
  */
 @RestController
