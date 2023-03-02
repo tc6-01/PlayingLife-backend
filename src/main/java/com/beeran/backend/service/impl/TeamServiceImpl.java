@@ -153,13 +153,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             // 获取查询队伍的状态属性
             Integer status = teamQuery.getStatus();
             TeamStatusEnums teamStatusEnums = TeamStatusEnums.getEnumsByValue(status);
-            if (teamStatusEnums == null) {
-                teamStatusEnums = TeamStatusEnums.PUBLIC;
+            if (teamStatusEnums != null) {
+                if (!isAdmin && !teamStatusEnums.equals(TeamStatusEnums.PUBLIC)) {
+                    throw new BusisnessException(ErrorCode.NO_AUTH);
+                }
+                queryWrapper.eq("status", teamStatusEnums.getValue());
             }
-            if (!isAdmin && !teamStatusEnums.equals(TeamStatusEnums.PUBLIC)) {
-                throw new BusisnessException(ErrorCode.NO_AUTH);
-            }
-            queryWrapper.eq("status", teamStatusEnums.getValue());
+
+
         }
         // 不展示过期队伍
         queryWrapper.and(qw -> qw.gt("expireTime", new Date()).or().isNull("expireTime"));

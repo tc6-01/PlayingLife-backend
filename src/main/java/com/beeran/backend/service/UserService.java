@@ -1,14 +1,11 @@
 package com.beeran.backend.service;
 
-import com.beeran.backend.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.beeran.backend.model.domain.User;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-
-import static com.beeran.backend.constant.UserConstant.ADMIN_ROLE;
-import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 
 /**
  * userService
@@ -58,4 +55,13 @@ public interface UserService extends IService<User> {
     boolean isAdmin(@RequestBody HttpServletRequest request);
 
     boolean isAdmin(User user);
+
+    /**
+     * 匹配最匹配的用户
+     *
+     * @param num
+     * @param loginUser
+     * @return
+     */
+    List<User> matchUser(long num, User loginUser);
 }

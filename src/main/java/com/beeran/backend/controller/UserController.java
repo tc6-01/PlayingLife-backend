@@ -9,6 +9,7 @@ import com.beeran.backend.exception.BusisnessException;
 import com.beeran.backend.model.domain.User;
 import com.beeran.backend.model.request.UserLoginRequest;
 import com.beeran.backend.model.request.UserRegisterRequest;
+import com.beeran.backend.model.vo.UserVO;
 import com.beeran.backend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -180,6 +181,19 @@ public class UserController {
         return ResultUtils.Success(b);
     }
 
-
-
+    /**
+     * 根据用户标签进行匹配最合适用户
+     *
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<UserVO>> matchUser(long num, HttpServletRequest request) {
+        if (num < 0 || num >20){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR,"请求数量不正确");
+        }
+        User loginUser = userService.getLoginUser(request);
+        return  ResultUtils.Success(userService.matchUser(num, loginUser));
+    }
 }

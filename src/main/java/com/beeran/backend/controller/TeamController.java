@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -145,7 +146,7 @@ public class TeamController {
         if (team == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }
-        return ResultUtils.Success(true);
+        return ResultUtils.Success(team);
     }
 
     /**
@@ -162,10 +163,27 @@ public class TeamController {
         }
         boolean isAdmin = userService.isAdmin(request);
         List<TeamUserVO> resultTeams = teamService.ListTeams(teamQuery, isAdmin);
-
         if (resultTeams == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }
+        // 判断当前用户是否已经加入展示的队伍
+        // 获取展示队伍的teamID ，查询team_user关系表中的userID和TeamID对应
+        List<Long> idList = resultTeams.stream().map(TeamUserVO::getId).collect(Collectors.toList());
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        try {
+            User loginUser = userService.getLoginUser(request);
+            userTeamQueryWrapper.eq("userId", loginUser.getId());
+            userTeamQueryWrapper.in("teamId", idList);
+            List<UserTeam> userTeamList = userTeamService.list(userTeamQueryWrapper);
+            Set<Long> hasJoinTeamSet = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
+            resultTeams.forEach(team ->{
+                boolean hasJoin = hasJoinTeamSet.contains(team.getId());
+                team.setHasJoin(hasJoin);
+            });
+        }catch (Exception e){
+
+        }
+
         return ResultUtils.Success(resultTeams);
     }
     /**
