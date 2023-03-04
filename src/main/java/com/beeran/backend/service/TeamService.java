@@ -8,6 +8,7 @@ import com.beeran.backend.model.request.TeamJoinRequest;
 import com.beeran.backend.model.request.TeamUpdateRequest;
 import com.beeran.backend.model.vo.TeamUserVO;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -64,4 +65,5 @@ public interface TeamService extends IService<Team> {
     boolean delTeam(long teamId, User loginUser);
 
 
+    List<TeamUserVO> correctsJoinProp(List<TeamUserVO> resultTeams, HttpServletRequest request);
 }

@@ -178,8 +178,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param tagNameList 用户使用的标签
      * @return
      */
-    @Deprecated
-    private List<User> searchUserByTagsBySql(List<String> tagNameList) {
+    @Override
+    public List<User> searchUserByTags(List<String> tagNameList) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
@@ -200,14 +200,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param tagNameList 用户使用的标签
      * @return
      */
-    @Override
-    public List<User> searchUserByTags(List<String> tagNameList){
+    @Deprecated
+    private List<User> searchUserByTagsByMemory(List<String> tagNameList){
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
         // 先查询所有用户
-        QueryWrapper<User> queryWrapper;
-        queryWrapper = new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         long start = System.currentTimeMillis();
         List<User> users = userMapper.selectList(queryWrapper);
         Gson gson = new Gson();

@@ -25,7 +25,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -69,7 +68,7 @@ public class TeamController {
      * @param request
      * @return
      */
-    @PostMapping("/exitTeam")
+    @GetMapping("/exitTeam")
     public BaseResponse<Boolean> exitTeam(long teamId, HttpServletRequest request){
         if (teamId < 0){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
@@ -88,7 +87,7 @@ public class TeamController {
      * @param request
      * @return
      */
-    @PostMapping("/deleteTeam")
+    @GetMapping("/deleteTeam")
     public BaseResponse<Boolean> delTeam(long teamId, HttpServletRequest request){
         if (teamId < 0){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
@@ -168,21 +167,7 @@ public class TeamController {
         }
         // 判断当前用户是否已经加入展示的队伍
         // 获取展示队伍的teamID ，查询team_user关系表中的userID和TeamID对应
-        List<Long> idList = resultTeams.stream().map(TeamUserVO::getId).collect(Collectors.toList());
-        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
-        try {
-            User loginUser = userService.getLoginUser(request);
-            userTeamQueryWrapper.eq("userId", loginUser.getId());
-            userTeamQueryWrapper.in("teamId", idList);
-            List<UserTeam> userTeamList = userTeamService.list(userTeamQueryWrapper);
-            Set<Long> hasJoinTeamSet = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
-            resultTeams.forEach(team ->{
-                boolean hasJoin = hasJoinTeamSet.contains(team.getId());
-                team.setHasJoin(hasJoin);
-            });
-        }catch (Exception e){
-
-        }
+        resultTeams = teamService.correctsJoinProp(resultTeams, request);
 
         return ResultUtils.Success(resultTeams);
     }
@@ -207,6 +192,8 @@ public class TeamController {
         if (resultTeams == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }
+        resultTeams = teamService.correctsJoinProp(resultTeams, request);
+
         return ResultUtils.Success(resultTeams);
     }
     /**
@@ -225,6 +212,8 @@ public class TeamController {
         if (resultTeams == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }
+        resultTeams = teamService.correctsJoinProp(resultTeams, request);
+
         return ResultUtils.Success(resultTeams);
     }
 
