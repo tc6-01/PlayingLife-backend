@@ -85,7 +85,7 @@ public class User implements Serializable {
     private Byte is_delete;
 
     /**
-     * 星球编号
+     * 学号
      */
     private String planetCode;
 

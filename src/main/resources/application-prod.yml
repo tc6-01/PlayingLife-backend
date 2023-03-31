@@ -4,8 +4,3 @@ spring:
     url: jdbc:mysql://120.76.203.218:3306/test
     username: user
     password: 123456
-  session:
-    timeout: 86400 # 设置超时时间为一天
-
-server:
-  address: 0.0.0.0

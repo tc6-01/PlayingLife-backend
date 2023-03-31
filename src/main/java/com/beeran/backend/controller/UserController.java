@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -93,7 +94,6 @@ public class UserController {
             throw new BusisnessException(ErrorCode.NO_LOGIN);
         }
         Long id = currentUser.getId();
-        // TODO 校验用户是否合法
         User user = userService.getById(id);
         User safetyUser = userService.safetyUser(user);
         return ResultUtils.Success(safetyUser);
@@ -123,6 +123,7 @@ public class UserController {
         if (CollectionUtils.isEmpty(tagNameList)){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
+        HashSet<Object> objects = new HashSet<>();
         // 调用Service层
         List<User> userList = userService.searchUserByTags(tagNameList);
         return ResultUtils.Success(userList);
@@ -132,11 +133,11 @@ public class UserController {
         User loginUser = userService.getLoginUser(request);
         Long id = loginUser.getId();
         // 判断当前用户是否有缓存，如果有就直接用缓存
-        String redisKey = String.format("com.user.recommend.%s", id);
+        String redisKey = String.format("com.user.recommend.%s.%s", id, pageNum);
         ValueOperations<String, Object> sop = redisTemplate.opsForValue();
         Page<User> userPage = (Page<User>) sop.get(redisKey);
         if (userPage != null){
-            return ResultUtils.Success(userPage);
+            return ResultUtils.Success(userPage.getCurrent());
         }
         // 无缓存，去查数据库
         // 判断传入数据，请求参数是否为空

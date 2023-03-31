@@ -45,7 +45,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long userRegister(String userAccount, String userPassword, String checkPass, String planetCode) {
         //1.校验
         if (StringUtils.isAnyBlank(userAccount,userPassword,checkPass, planetCode)){
-            throw new BusisnessException(ErrorCode.PARAMS_ERROR, "账号，密码,校验密码或星球编号为空");
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR, "账号，密码,校验密码或学号为空");
         }
         if (userAccount.length() < 4){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR, "账号长度最小为4位");
@@ -72,12 +72,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusisnessException(ErrorCode.PARAMS_ERROR, "已存在相同账号");
         }
 
-        // 星球编号不能重复
+        // 学号不能重复
         QueryWrapper<User> queryPlantCode = new QueryWrapper<>();
         queryPlantCode.eq("planetCode", planetCode);
         long countPlant = this.count(queryPlantCode);
         if (countPlant > 0){
-           throw new BusisnessException(ErrorCode.PARAMS_ERROR, "当前星球编号已注册");
+           throw new BusisnessException(ErrorCode.PARAMS_ERROR, "当前学号已注册");
         }
         // 2.加密
 
@@ -116,7 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (matcher.find()){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR,"账号中不能使用特殊字符");
         }
-        // 2.加密
+        // 2.加密x'x
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         // 查询用户是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -243,8 +243,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (userID == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR);
         }
-        // 只有管理员和自己可以修改
-        if (isAdmin(loginUser) && userID != loginUser.getId()) {
+
+        // 只有自己可以修改
+        if (!userID.equals(loginUser.getId())) {
             throw new BusisnessException(ErrorCode.NO_AUTH);
         }
         User oldUser = userMapper.selectById(userID);
