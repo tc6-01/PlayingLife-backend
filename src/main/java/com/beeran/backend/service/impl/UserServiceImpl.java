@@ -13,6 +13,8 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Pair;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -37,7 +39,8 @@ import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
     private static final String SALT = "beeran";
-
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private UserMapper userMapper;
 
@@ -300,11 +303,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public List<User> matchUser(long num, User loginUser) {
+        Long id = loginUser.getId();
+        String redisKey = String.format("com.user.match.%s",id);
+        ValueOperations<String, Object> sop = redisTemplate.opsForValue();
+        List<User> matchUsers = (List<User>)sop.get(redisKey);
+        if (matchUsers != null){
+            return matchUsers;
+        }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id", "tags");
         queryWrapper.isNotNull("tags");
         List<User> userList = this.list(queryWrapper);
         String tags = loginUser.getTags();
+        if (tags == null) {
+            throw new BusisnessException(ErrorCode.NULL_ERROR,"未设置Tags,不能进行匹配");
+        }
         Gson gson = new Gson();
         List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
         }.getType());
@@ -344,6 +357,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         for (Long userId : userIdList) {
             finalUserList.add(userIdUserListMap.get(userId).get(0));
         }
+        sop.set(redisKey,finalUserList);
         return finalUserList;
     }
 

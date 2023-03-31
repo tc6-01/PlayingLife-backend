@@ -45,7 +45,7 @@ public class preCache {
                     QueryWrapper<User> queryWrapper = new QueryWrapper<>();
                     // 调用Service层
                     Page<User> userPage = userService.page(new Page<>(1, 20),queryWrapper);
-                    String redisKey = String.format("com.user.recommend.%s", userId);
+                    String redisKey = String.format("com.user.recommend.%s.%d", userId,1);
                     ValueOperations<String, Object> sop = redisTemplate.opsForValue();
 
                     // 写入缓存
