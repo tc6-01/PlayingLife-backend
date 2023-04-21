@@ -1,2 +1,0 @@
-# PlayingLife-backend
-PlayingLife Backend
