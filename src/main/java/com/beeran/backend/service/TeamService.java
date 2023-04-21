@@ -7,6 +7,7 @@ import com.beeran.backend.model.dto.TeamQuery;
 import com.beeran.backend.model.request.TeamJoinRequest;
 import com.beeran.backend.model.request.TeamUpdateRequest;
 import com.beeran.backend.model.vo.TeamUserVO;
+import com.beeran.backend.model.vo.TeamVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -56,6 +57,12 @@ public interface TeamService extends IService<Team> {
      */
     boolean exitTeam( long teamId, User loginUser);
 
+    /**
+     * 根据队伍Id查询队伍信息
+     * @param id
+     * @return TeamVO
+     */
+    TeamVO getTeamInfoById(long id);
     /**
      * 队长解散队伍
      * @param teamId

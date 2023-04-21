@@ -13,6 +13,7 @@ import com.beeran.backend.model.enums.TeamStatusEnums;
 import com.beeran.backend.model.request.TeamJoinRequest;
 import com.beeran.backend.model.request.TeamUpdateRequest;
 import com.beeran.backend.model.vo.TeamUserVO;
+import com.beeran.backend.model.vo.TeamVO;
 import com.beeran.backend.model.vo.UserVO;
 import com.beeran.backend.service.TeamService;
 import com.beeran.backend.service.UserService;
@@ -343,6 +344,47 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         // 移除用户关系
         return userTeamService.remove(UserInTeamQueryWrapper);
+    }
+
+    @Override
+    public TeamVO getTeamInfoById(long id) {
+        // 获取当前队伍
+        // 去队伍用户表中查询当前队伍对应加入的用户，并放入返回结果中
+        Team team = this.getById(id);
+        // 校验队伍是否存在
+        Long userId = team.getUserId();
+        if (userId == null) {
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR,"队伍不存在");
+        }
+        TeamVO teamVO = new TeamVO();
+        User createUser = userService.getById(userId);
+        //脱敏信息
+        if (createUser != null) {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(createUser, userVO);
+            teamVO.setCreateUser(userVO);
+        }
+        BeanUtils.copyProperties(team, teamVO);
+        // 加入用户信息
+        QueryWrapper<UserTeam> wrapper = new QueryWrapper<>();
+        wrapper.eq("teamId", id);
+        List<UserTeam> userTeamList = userTeamService.list(wrapper);
+        //获取加入队伍的用户id
+        List<Long> userIdList = userTeamList.stream().map(UserTeam::getUserId).collect(Collectors.toList());
+        //根据用户id查出详细的信息
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.in("id", userIdList);
+        List<User> userList = userService.list(userQueryWrapper);
+        //用户脱敏
+        List<UserVO> userVOList = new ArrayList<>();
+        for (User user : userList) {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            userVOList.add(userVO);
+        }
+        teamVO.setUserJoinList(userVOList);
+        teamVO.setHasJoinNum((long)userVOList.size());
+        return teamVO;
     }
 
     @Override

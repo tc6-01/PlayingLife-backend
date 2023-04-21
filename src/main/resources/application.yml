@@ -30,6 +30,11 @@ server:
   servlet:
     context-path: /api
   port: 8080
+
+upload:
+  path: L:\\code-projects\user-center-bank-end\\src\\main\\resources\\uploadAvatarImg\\
+  address: http://localhost:8080/api
+
 # 关闭springboot日志
 #logging:
 #  level:

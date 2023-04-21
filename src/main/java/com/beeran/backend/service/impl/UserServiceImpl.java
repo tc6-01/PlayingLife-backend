@@ -8,8 +8,10 @@ import com.beeran.backend.mapper.UserMapper;
 import com.beeran.backend.model.domain.User;
 import com.beeran.backend.service.UserService;
 import com.beeran.backend.utils.AlgorithmUtils;
+import com.beeran.backend.utils.FileUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Pair;
 import org.mybatis.spring.annotation.MapperScan;
@@ -18,16 +20,18 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.beeran.backend.constant.UserConstant.ADMIN_ROLE;
-import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
+import static com.beeran.backend.constant.UserConstant.*;
 
 
 /**
@@ -38,11 +42,20 @@ import static com.beeran.backend.constant.UserConstant.USER_LOGIN_STATUS;
 @MapperScan("com.beeran.backend.model.domain.User")
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
+    @Value("${upload.address}")
+    private String webAddress;
     private static final String SALT = "beeran";
+    /**
+     * 盐值
+     */
+
+
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private FileUtils fileUtils;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPass, String planetCode) {
@@ -361,6 +374,83 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return finalUserList;
     }
 
+    /**
+     * 上传头像
+     * @param avatarImg
+     * @param httpServletRequest
+     * @return
+     */
+    @Override
+    public String uploadAvatar(MultipartFile avatarImg, HttpServletRequest httpServletRequest) {
+        User loginUser = getLoginUser(httpServletRequest);
+        // 校验图片格式
+        if (!imageTypeRight(avatarImg)){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR,"图片格式错误");
+        }
+        // 获取上传文件后的路径
+        String path = uploadFile(avatarImg);
+        if (StringUtils.isBlank(path)){
+            throw new BusisnessException(ErrorCode.SYSTEM_ERROR);
+        }
+        // 删除之前的头像(如果是默认头像不删除)
+        String image = loginUser.getAvatar_url();
+        if (!image.equals(IMAGE_URL)){
+            //匹配头像图片在本地的uuid
+            if (!fileUtils.del(image.substring(image.indexOf("uploads") + 8))) {
+                throw new BusisnessException(ErrorCode.PARAMS_ERROR,"修改头像失败");
+            }
+        }
+        path = webAddress+path;
+        loginUser.setAvatar_url(path);
+        boolean result = this.updateById(loginUser);
+        if (!result){
+            throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"用户头像更新失败");
+        }
+        //普通用户重新更新会话，管理员不更新
+        if (!isAdmin(loginUser)){
+            User safetyUser = safetyUser(loginUser);
+            httpServletRequest.getSession().setAttribute(USER_LOGIN_STATUS,safetyUser);
+        }
+        return loginUser.getAvatar_url();
+    }
+
+    /**
+     * 验证图片的格式
+     *
+     * @param file 图片
+     * @return
+     */
+    private boolean imageTypeRight(MultipartFile file) {
+        // 首先校验图片格式
+        List<String> imageType = Arrays.asList("jpg", "jpeg", "png", "bmp", "gif");
+        // 获取文件名，带后缀
+        String originalFilename = file.getOriginalFilename();
+        // 获取文件的后缀格式
+        String fileSuffix = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();  //不带 .
+        return imageType.contains(fileSuffix);
+    }
+    /**
+     * 上传文件
+     *
+     * @param file
+     * @return 返回路径
+     */
+    public String uploadFile(MultipartFile file) {
+
+        String originalFilename = file.getOriginalFilename();
+        String fileSuffix = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        // 只有当满足图片格式时才进来，重新赋图片名，防止出现名称重复的情况
+        String newFileName = UUID.randomUUID().toString().replaceAll("-", "") + "." + fileSuffix;
+        // 该方法返回的为当前项目的工作目录，即在哪个地方启动的java线程
+        File fileTransfer = new File(fileUtils.getPath(), newFileName);
+        try {
+            file.transferTo(fileTransfer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 将图片相对路径返回给前端
+        return "/uploads/" + newFileName;
+    }
 }
 
 

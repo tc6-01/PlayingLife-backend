@@ -14,6 +14,7 @@ import com.beeran.backend.model.request.TeamAddRequest;
 import com.beeran.backend.model.request.TeamJoinRequest;
 import com.beeran.backend.model.request.TeamUpdateRequest;
 import com.beeran.backend.model.vo.TeamUserVO;
+import com.beeran.backend.model.vo.TeamVO;
 import com.beeran.backend.service.TeamService;
 import com.beeran.backend.service.UserService;
 import com.beeran.backend.service.UserTeamService;
@@ -141,7 +142,7 @@ public class TeamController {
         if (id < 0){
             throw new BusisnessException(ErrorCode.PARAMS_ERROR);
         }
-        Team team = teamService.getById(id);
+        TeamVO team = teamService.getTeamInfoById(id);
         if (team == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR,"查询失败");
         }

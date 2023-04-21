@@ -3,6 +3,7 @@ package com.beeran.backend.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.beeran.backend.model.domain.User;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -64,4 +65,6 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<User> matchUser(long num, User loginUser);
+
+    String uploadAvatar(MultipartFile avatarImg,HttpServletRequest httpServletRequest);
 }

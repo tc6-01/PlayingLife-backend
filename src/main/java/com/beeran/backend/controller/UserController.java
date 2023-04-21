@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -198,5 +199,13 @@ public class UserController {
         }
         User loginUser = userService.getLoginUser(request);
         return  ResultUtils.Success(userService.matchUser(num, loginUser));
+    }
+    @PostMapping("/upload/avatar")
+    public BaseResponse<String> uploadAvatar(MultipartFile avatarImg , HttpServletRequest httpServletRequest){
+        if (avatarImg == null) {
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR);
+        }
+        String result = userService.uploadAvatar(avatarImg,httpServletRequest);
+        return ResultUtils.Success(result);
     }
 }

@@ -17,5 +17,9 @@ public interface UserConstant {
      * 管理员权限
      */
     int ADMIN_ROLE = 1;
+    /**
+     * 默认存储图片
+     */
+    String IMAGE_URL = "https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg";
 }
 
