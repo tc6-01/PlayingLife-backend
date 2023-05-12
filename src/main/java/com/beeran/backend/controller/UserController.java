@@ -148,7 +148,7 @@ public class UserController {
         // 调用Service层
         userPage = userService.page(new Page<>(pageNum, pageSize),queryWrapper);
         try {
-            sop.set(redisKey, userPage, 2, TimeUnit.HOURS);
+            sop.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
 
         } catch (Exception e) {
             log.error("redis key error", e);

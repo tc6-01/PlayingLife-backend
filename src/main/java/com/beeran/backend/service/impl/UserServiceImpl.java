@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -370,7 +371,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         for (Long userId : userIdList) {
             finalUserList.add(userIdUserListMap.get(userId).get(0));
         }
-        sop.set(redisKey,finalUserList);
+        sop.set(redisKey,finalUserList,2, TimeUnit.HOURS);
         return finalUserList;
     }
 
