@@ -255,7 +255,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return 更新后的用户ID
      */
     @Override
-    public Integer updateUser(User user, User loginUser) {
+    public Integer updateUser(User user, User loginUser, HttpServletRequest request) {
         Long userID = user.getId();
         if (userID == null){
             throw new BusisnessException(ErrorCode.NULL_ERROR);
@@ -270,7 +270,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusisnessException(ErrorCode.NULL_ERROR);
         }
         // 仅管理员和用户自己可修改
-        return userMapper.updateById(user);
+        int status = userMapper.updateById(user);
+        if(status < 0 ){
+            throw new BusisnessException(ErrorCode.PARAMS_ERROR, "更新失败");
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        String account = loginUser.get_account();
+        queryWrapper.eq("_account",account);
+        User newUser = userMapper.selectOne(queryWrapper);
+        request.setAttribute(USER_LOGIN_STATUS, newUser);
+        return status;
     }
 
     /**

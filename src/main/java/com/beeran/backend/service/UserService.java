@@ -45,7 +45,16 @@ public interface UserService extends IService<User> {
      */
     List<User> searchUserByTags(List<String> tags);
 
-    Integer updateUser(User user, User loginUser);
+    /**
+     * 实现用户更新信息，并实现登录态更新
+     * @author BeerAn
+     * @param user
+     * @param loginUser
+     * @param request
+     * @return
+     */
+
+    Integer updateUser(User user, User loginUser, HttpServletRequest request);
 
     /**
      * 获取当前登录用户信息

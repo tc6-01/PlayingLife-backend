@@ -167,7 +167,9 @@ public class UserController {
             throw new BusisnessException(ErrorCode.NULL_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        Integer result = userService.updateUser(user, loginUser);
+        // 更新用户的属性同时，需要更新登录态
+        Integer result = userService.updateUser(user, loginUser, request);
+
         return ResultUtils.Success(result);
 
     }
