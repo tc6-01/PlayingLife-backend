@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -31,29 +30,37 @@ public class preCache {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    // 判断是否执行完了定时任务
+    private boolean flag = false;
+
     // 重点用户
     private List<Long> mainUsers = Arrays.asList(4L);
 
-    @Scheduled(cron="0 0 12 * * *")
-    public void doCacheRecommandUser(){
+    @Scheduled(cron="0 0 7 * * *")
+    public void resetExecute(){
+        flag = false;
+    }
+    @Scheduled(cron="0 0 8 * * *")
+    public void doCacheRecommendUser(){
         RLock lock = redissonClient.getLock("com.user.recommend.lock");
         try {
             // 保证一个线程获取资源
-            if (lock.tryLock(0,10000, TimeUnit.MICROSECONDS)) {
+            if (lock.tryLock(0,10000, TimeUnit.MICROSECONDS) && !flag) {
                 System.out.println("get lock" + Thread.currentThread().getName());
                 for (Long userId : mainUsers){
                     QueryWrapper<User> queryWrapper = new QueryWrapper<>();
                     // 调用Service层
                     Page<User> userPage = userService.page(new Page<>(1, 20),queryWrapper);
-                    String redisKey = String.format("com.user.recommend.%s.%d", userId,1);
+                    String redisKey = String.format("com.user.recommend.%s", userId);
                     ValueOperations<String, Object> sop = redisTemplate.opsForValue();
 
                     // 写入缓存
                     try {
-                        sop.set(redisKey, userPage, 2, TimeUnit.HOURS);
+                        sop.set(redisKey, userPage, 12, TimeUnit.HOURS);
                     } catch (Exception e) {
                         log.error("redis key error", e);
                     }
+                    flag = true;
                 }
             }
         } catch (InterruptedException e) {

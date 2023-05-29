@@ -135,7 +135,7 @@ public class UserController {
         User loginUser = userService.getLoginUser(request);
         Long id = loginUser.getId();
         // 判断当前用户是否有缓存，如果有就直接用缓存
-        String redisKey = String.format("com.user.recommend.%s.%s",id,pageNum);
+        String redisKey = String.format("com.user.recommend.%s",id);
         ValueOperations<String, Object> sop = redisTemplate.opsForValue();
 
         Page<User> userPage = (Page<User>) sop.get(redisKey);
@@ -148,7 +148,7 @@ public class UserController {
         // 调用Service层
         userPage = userService.page(new Page<>(pageNum, pageSize),queryWrapper);
         try {
-            sop.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
+            sop.set(redisKey, userPage, 12, TimeUnit.HOURS);
 
         } catch (Exception e) {
             log.error("redis key error", e);
@@ -169,7 +169,17 @@ public class UserController {
         User loginUser = userService.getLoginUser(request);
         // 更新用户的属性同时，需要更新登录态
         Integer result = userService.updateUser(user, loginUser, request);
-
+        // 先更新数据库，然后再删除缓存。用户更新的同时需要删除缓存，采用Cache Aside的缓存更新策略
+        String redisKey = String.format("com.user.match.%s",loginUser.getId());
+        // 写入缓存
+        try {
+            Boolean flag = redisTemplate.delete(redisKey);
+            if (flag == false) {
+                throw new BusisnessException(ErrorCode.SYSTEM_ERROR,"更新失败");
+            }
+        } catch (Exception e) {
+            log.error("redis key error", e);
+        }
         return ResultUtils.Success(result);
 
     }
